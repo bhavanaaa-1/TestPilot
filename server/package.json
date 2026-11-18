@@ -1,0 +1,36 @@
+{
+  "name": "testpilot-server",
+  "version": "1.0.0",
+  "description": "Backend API service for TestPilot AI Testing Assistant",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
+    "@google/genai": "^3.4.0",
+    "@prisma/client": "^6.4.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "prisma": "^6.4.1"
+  },
+  "keywords": [
+    "express",
+    "api",
+    "testpilot",
+    "testing-assistant"
+  ],
+  "author": "TestPilot Team",
+  "license": "ISC"
+}

@@ -1,0 +1,44 @@
+{
+  "name": "testpilot-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TestPilot - AI-Powered API Testing Assistant (Phase 1 Foundation)",
+  "workspaces": [
+    "server",
+    "sandbox-api",
+    "client"
+  ],
+  "scripts": {
+    "test": "node scripts/verify-all.js",
+    "verify:phase1": "node scripts/verify-phase1.js",
+    "verify:phase2": "node scripts/verify-phase2.js",
+    "verify:phase3": "node scripts/verify-phase3.js",
+    "verify:phase4": "node scripts/verify-phase4.js",
+    "verify:phase5": "node scripts/verify-phase5.js",
+    "verify:all": "node scripts/verify-all.js",
+    "verify:live": "node scripts/verify-live-gemini.js",
+    "install:all": "npm install --workspaces",
+    "dev": "npm --prefix server run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:sandbox": "npm --prefix sandbox-api run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start:server": "npm --prefix server start",
+    "start:sandbox": "npm --prefix sandbox-api start",
+    "start:client": "npm --prefix client start",
+    "build:client": "npm --prefix client run build",
+    "preview:client": "npm --prefix client run preview"
+  },
+  "keywords": [
+    "api-testing",
+    "openapi",
+    "test-automation",
+    "express",
+    "react",
+    "vite"
+  ],
+  "author": "TestPilot Team",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}

@@ -1,0 +1,717 @@
+{
+  "id": "benchmark-v1",
+  "name": "TestPilot Core REST API Benchmark",
+  "version": "1.0.0",
+  "description": "Standardized benchmark suite for evaluating LLM API test case generation against REST contracts.",
+  "specTitle": "TestPilot Sandbox Mock API",
+  "specVersion": "3.0.3",
+  "createdAt": "2026-11-17T00:00:00.000Z",
+  "totalCases": 16,
+  "cases": [
+    {
+      "id": "case_get_users_pos_01",
+      "name": "GET /users - Happy Path Retrieval",
+      "scenarioType": "positive",
+      "endpoint": {
+        "method": "GET",
+        "path": "/users",
+        "operationId": "getAllUsers"
+      },
+      "specContext": {
+        "summary": "Retrieve all users",
+        "description": "Returns a list of all active user records with optional pagination query params.",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "role", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "A JSON array of user objects" }
+        }
+      },
+      "prompt": "Generate a positive test scenario to retrieve all registered users from GET /users.",
+      "expectedCategories": ["positive"],
+      "expectedMethods": ["GET"],
+      "expectedStatusCodes": [200],
+      "requiredConditions": ["Response status is 200", "users array"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_get_users_01",
+          "name": "GET /users - Happy Path Conformance",
+          "description": "Verify that GET /users returns HTTP 200 and an array of user objects",
+          "category": "positive",
+          "method": "GET",
+          "path": "/users",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 200,
+          "expectedResponseConditions": ["Response status is 200", "Response is an array of users"]
+        }
+      ]
+    },
+    {
+      "id": "case_get_users_bnd_02",
+      "name": "GET /users - Zero Limit Pagination Boundary",
+      "scenarioType": "boundary",
+      "endpoint": {
+        "method": "GET",
+        "path": "/users",
+        "operationId": "getAllUsers"
+      },
+      "specContext": {
+        "summary": "Retrieve all users",
+        "description": "Query parameters include limit and offset for pagination control.",
+        "parameters": [{ "name": "limit", "in": "query", "schema": { "type": "integer" } }]
+      },
+      "prompt": "Generate an edge-case boundary test with limit=0 query parameter on GET /users.",
+      "expectedCategories": ["boundary"],
+      "expectedMethods": ["GET"],
+      "expectedStatusCodes": [200],
+      "requiredConditions": ["Response status is 200"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_get_users_bnd_01",
+          "name": "GET /users - Boundary Zero Limit",
+          "description": "Verifies that supplying limit=0 query parameter is gracefully handled",
+          "category": "boundary",
+          "method": "GET",
+          "path": "/users",
+          "headers": { "Accept": "application/json" },
+          "queryParams": { "limit": 0 },
+          "requestBody": null,
+          "expectedStatus": 200,
+          "expectedResponseConditions": ["Response status is 200"]
+        }
+      ]
+    },
+    {
+      "id": "case_get_user_id_pos_03",
+      "name": "GET /users/{id} - Existing User Lookup",
+      "scenarioType": "positive",
+      "endpoint": {
+        "method": "GET",
+        "path": "/users/{id}",
+        "operationId": "getUserById"
+      },
+      "specContext": {
+        "summary": "Get user by ID",
+        "description": "Returns single user record by numeric ID.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }]
+      },
+      "prompt": "Generate a positive test case to fetch an existing user by identifier (ID: 1).",
+      "expectedCategories": ["positive"],
+      "expectedMethods": ["GET"],
+      "expectedStatusCodes": [200],
+      "requiredConditions": ["Response status is 200", "id"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": true,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_get_user_id_01",
+          "name": "GET /users/1 - Valid User Retrieval",
+          "description": "Verifies that an existing user record is returned with HTTP 200",
+          "category": "positive",
+          "method": "GET",
+          "path": "/users/1",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 200,
+          "expectedResponseConditions": ["Response status is 200", "Response contains user id 1"]
+        }
+      ]
+    },
+    {
+      "id": "case_get_user_id_neg_04",
+      "name": "GET /users/{id} - Non-Existent User 404",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "GET",
+        "path": "/users/{id}",
+        "operationId": "getUserById"
+      },
+      "specContext": {
+        "summary": "Get user by ID",
+        "description": "Returns 404 when user ID does not exist.",
+        "responses": {
+          "404": { "description": "User not found" }
+        }
+      },
+      "prompt": "Generate a negative test case for GET /users/{id} when querying a non-existent ID 999999.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["GET"],
+      "expectedStatusCodes": [404],
+      "requiredConditions": ["Response status is 404", "error"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": true,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_get_user_id_neg_01",
+          "name": "GET /users/999999 - Non-Existent User",
+          "description": "Verifies that querying a non-existent user ID yields HTTP 404 Not Found",
+          "category": "negative",
+          "method": "GET",
+          "path": "/users/999999",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 404,
+          "expectedResponseConditions": ["Response status is 404", "Response contains error message"]
+        }
+      ]
+    },
+    {
+      "id": "case_get_user_id_bnd_05",
+      "name": "GET /users/{id} - Extreme Negative / Zero ID Boundary",
+      "scenarioType": "boundary",
+      "endpoint": {
+        "method": "GET",
+        "path": "/users/{id}",
+        "operationId": "getUserById"
+      },
+      "specContext": {
+        "summary": "Get user by ID",
+        "description": "Path parameter boundary handling."
+      },
+      "prompt": "Generate a boundary test case querying ID 0 on GET /users/{id}.",
+      "expectedCategories": ["boundary"],
+      "expectedMethods": ["GET"],
+      "expectedStatusCodes": [404, 400],
+      "requiredConditions": ["status is 404 or 400"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": true,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_get_user_bnd_zero",
+          "name": "GET /users/0 - Boundary Zero Identifier",
+          "description": "Tests handling of boundary ID zero",
+          "category": "boundary",
+          "method": "GET",
+          "path": "/users/0",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 404,
+          "expectedResponseConditions": ["Response status is 404"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_pos_06",
+      "name": "POST /users - Valid Member User Creation",
+      "scenarioType": "positive",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Create a new user",
+        "description": "Creates a new user record. Requires name, email, and role.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": ["name", "email", "role"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "role": { "type": "string", "enum": ["admin", "member", "viewer"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created successfully" }
+        }
+      },
+      "prompt": "Generate a positive happy-path test case for POST /users with a valid name, email, and role='member'.",
+      "expectedCategories": ["positive"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [201],
+      "requiredConditions": ["Response status is 201", "contains id"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_01",
+          "name": "POST /users - Valid Member Creation",
+          "description": "Creates a valid member user with proper schema payload",
+          "category": "positive",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Alex Morgan",
+            "email": "alex.morgan@example.com",
+            "role": "member"
+          },
+          "expectedStatus": 201,
+          "expectedResponseConditions": ["Response status is 201", "Response body contains id"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_pos_07",
+      "name": "POST /users - Valid Admin User Creation",
+      "scenarioType": "positive",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Create user with admin role",
+        "description": "Verifies creation when role is admin."
+      },
+      "prompt": "Generate a positive test case creating an administrative user with role='admin'.",
+      "expectedCategories": ["positive"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [201],
+      "requiredConditions": ["Response status is 201", "role matches admin"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_admin",
+          "name": "POST /users - Valid Admin Creation",
+          "description": "Creates an admin user with valid properties",
+          "category": "positive",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Sam Taylor",
+            "email": "sam.taylor@example.com",
+            "role": "admin"
+          },
+          "expectedStatus": 201,
+          "expectedResponseConditions": ["Response status is 201"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_neg_08",
+      "name": "POST /users - Missing Required Name",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Create user validation",
+        "description": "Fails with 400 when name is missing."
+      },
+      "prompt": "Generate a negative test case for POST /users omitting the required 'name' field.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [400],
+      "requiredConditions": ["Response status is 400", "validation error"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_neg_name",
+          "name": "POST /users - Missing Name",
+          "description": "Sends request body missing required name field",
+          "category": "negative",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "email": "noname@example.com",
+            "role": "member"
+          },
+          "expectedStatus": 400,
+          "expectedResponseConditions": ["Response status is 400", "Indicates missing name"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_neg_09",
+      "name": "POST /users - Missing Required Email",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Create user validation",
+        "description": "Fails with 400 when email is omitted."
+      },
+      "prompt": "Generate a negative test case for POST /users omitting the required 'email' attribute.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [400],
+      "requiredConditions": ["Response status is 400"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_neg_email",
+          "name": "POST /users - Missing Email",
+          "description": "Payload lacks required email attribute",
+          "category": "negative",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "No Email User",
+            "role": "member"
+          },
+          "expectedStatus": 400,
+          "expectedResponseConditions": ["Response status is 400"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_neg_10",
+      "name": "POST /users - Malformed Email Syntax",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Email syntax validation",
+        "description": "Schema specifies format: email."
+      },
+      "prompt": "Generate a negative test case for POST /users with an invalid email address format (e.g., 'not-an-email').",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [400],
+      "requiredConditions": ["Response status is 400"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_bad_email",
+          "name": "POST /users - Invalid Email Format",
+          "description": "Supplies an invalid email string violating email format constraints",
+          "category": "negative",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Invalid Email",
+            "email": "not-an-email-address",
+            "role": "member"
+          },
+          "expectedStatus": 400,
+          "expectedResponseConditions": ["Response status is 400"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_neg_11",
+      "name": "POST /users - Invalid Role Enum Value",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Role enumeration check",
+        "description": "Supported roles: admin, member, viewer."
+      },
+      "prompt": "Generate a negative test case for POST /users with an invalid role value 'superuser'.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [400],
+      "requiredConditions": ["Response status is 400"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_bad_role",
+          "name": "POST /users - Invalid Role Enum",
+          "description": "Supplies role outside allowed enum values",
+          "category": "negative",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Bad Role User",
+            "email": "badrole@example.com",
+            "role": "superuser"
+          },
+          "expectedStatus": 400,
+          "expectedResponseConditions": ["Response status is 400"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_neg_12",
+      "name": "POST /users - Duplicate Email Conflict 409",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Unique email constraint",
+        "description": "Returns 409 Conflict if email is already in use by another user."
+      },
+      "prompt": "Generate a negative test case for POST /users using existing registered email 'alice@example.com' expecting HTTP 409 Conflict.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [409],
+      "requiredConditions": ["Response status is 409", "conflict"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_conflict",
+          "name": "POST /users - Duplicate Email Conflict",
+          "description": "Attempts creation with duplicate email expecting HTTP 409",
+          "category": "negative",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Alice Duplicate",
+            "email": "alice@example.com",
+            "role": "member"
+          },
+          "expectedStatus": 409,
+          "expectedResponseConditions": ["Response status is 409", "Indicates conflict"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_bnd_13",
+      "name": "POST /users - Empty Object Payload Boundary",
+      "scenarioType": "boundary",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Empty payload handling",
+        "description": "Checks server rejection of empty object payload {}."
+      },
+      "prompt": "Generate a boundary test case for POST /users sending an empty JSON object '{}'.",
+      "expectedCategories": ["boundary", "negative"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [400],
+      "requiredConditions": ["Response status is 400"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_empty_obj",
+          "name": "POST /users - Empty JSON Body",
+          "description": "Sends empty JSON object to test validation boundaries",
+          "category": "boundary",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {},
+          "expectedStatus": 400,
+          "expectedResponseConditions": ["Response status is 400"]
+        }
+      ]
+    },
+    {
+      "id": "case_post_user_bnd_14",
+      "name": "POST /users - Maximum Length Name Boundary",
+      "scenarioType": "boundary",
+      "endpoint": {
+        "method": "POST",
+        "path": "/users",
+        "operationId": "createUser"
+      },
+      "specContext": {
+        "summary": "Name length boundaries",
+        "description": "Tests handling of 100-character name string."
+      },
+      "prompt": "Generate a boundary test case for POST /users with a 100-character long name string.",
+      "expectedCategories": ["boundary"],
+      "expectedMethods": ["POST"],
+      "expectedStatusCodes": [201, 200],
+      "requiredConditions": ["Response status is 201 or 200"],
+      "criteria": {
+        "requiresRequestBody": true,
+        "requiresPathParams": false,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_post_user_max_name",
+          "name": "POST /users - 100-Char Name Boundary",
+          "description": "Sends maximum length string for user name",
+          "category": "boundary",
+          "method": "POST",
+          "path": "/users",
+          "headers": { "Content-Type": "application/json" },
+          "queryParams": {},
+          "requestBody": {
+            "name": "Maximilian Alexander Montgomery Richardson-Wellington The Hundredth Character In The Long Name Test",
+            "email": "longname.test@example.com",
+            "role": "member"
+          },
+          "expectedStatus": 201,
+          "expectedResponseConditions": ["Response status is 201"]
+        }
+      ]
+    },
+    {
+      "id": "case_delete_user_pos_15",
+      "name": "DELETE /users/{id} - Valid User Deletion",
+      "scenarioType": "positive",
+      "endpoint": {
+        "method": "DELETE",
+        "path": "/users/{id}",
+        "operationId": "deleteUser"
+      },
+      "specContext": {
+        "summary": "Delete a user",
+        "description": "Deletes existing user record. Returns 200 with confirmation or 204.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "User deleted successfully" },
+          "404": { "description": "User not found" }
+        }
+      },
+      "prompt": "Generate a positive test case for DELETE /users/{id} targeting an existing user ID.",
+      "expectedCategories": ["positive"],
+      "expectedMethods": ["DELETE"],
+      "expectedStatusCodes": [200, 204],
+      "requiredConditions": ["Response status is 200 or 204"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": true,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_delete_user_01",
+          "name": "DELETE /users/2 - Valid Deletion",
+          "description": "Verifies that an existing user is deleted with HTTP 200",
+          "category": "positive",
+          "method": "DELETE",
+          "path": "/users/2",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 200,
+          "expectedResponseConditions": ["Response status is 200"]
+        }
+      ]
+    },
+    {
+      "id": "case_delete_user_neg_16",
+      "name": "DELETE /users/{id} - Non-Existent User Deletion 404",
+      "scenarioType": "negative",
+      "endpoint": {
+        "method": "DELETE",
+        "path": "/users/{id}",
+        "operationId": "deleteUser"
+      },
+      "specContext": {
+        "summary": "Delete non-existent user",
+        "description": "Returns 404 when target user ID does not exist."
+      },
+      "prompt": "Generate a negative test case for DELETE /users/{id} targeting non-existent user ID 999999.",
+      "expectedCategories": ["negative"],
+      "expectedMethods": ["DELETE"],
+      "expectedStatusCodes": [404],
+      "requiredConditions": ["Response status is 404", "not found"],
+      "criteria": {
+        "requiresRequestBody": false,
+        "requiresPathParams": true,
+        "checksHttpStatus": true,
+        "checksResponseCondition": true
+      },
+      "referenceTestCases": [
+        {
+          "id": "ref_delete_user_neg_01",
+          "name": "DELETE /users/999999 - Non-Existent User Deletion",
+          "description": "Verifies deleting non-existent user returns HTTP 404",
+          "category": "negative",
+          "method": "DELETE",
+          "path": "/users/999999",
+          "headers": { "Accept": "application/json" },
+          "queryParams": {},
+          "requestBody": null,
+          "expectedStatus": 404,
+          "expectedResponseConditions": ["Response status is 404"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,439 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TestPilot Sandbox Mock API",
+    "version": "1.0.0",
+    "description": "Sample REST API specification describing the TestPilot in-memory sandbox environment. Provides user management endpoints for automated test execution and validation.",
+    "contact": {
+      "name": "TestPilot Team",
+      "email": "support@testpilot.dev"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local Sandbox Mock Server"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "description": "Retrieve a list of all users with optional role filtering.",
+        "operationId": "getAllUsers",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "description": "Filter users by their system role.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "developer",
+                "tester",
+                "user"
+              ]
+            },
+            "example": "developer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of user records.",
+            "headers": {
+              "X-Total-Count": {
+                "description": "Total number of matching users in the sandbox.",
+                "schema": {
+                  "type": "integer",
+                  "example": 3
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "1",
+                    "name": "Alice Johnson",
+                    "email": "alice.johnson@example.com",
+                    "role": "admin",
+                    "createdAt": "2026-01-10T08:30:00.000Z"
+                  },
+                  {
+                    "id": "2",
+                    "name": "Bob Smith",
+                    "email": "bob.smith@example.com",
+                    "role": "developer",
+                    "createdAt": "2026-02-14T10:15:00.000Z"
+                  },
+                  {
+                    "id": "3",
+                    "name": "Charlie Davis",
+                    "email": "charlie.davis@example.com",
+                    "role": "tester",
+                    "createdAt": "2026-03-01T14:45:00.000Z"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "description": "Add a new user record with validation for name, email format, and uniqueness.",
+        "operationId": "createUser",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "description": "User creation attributes.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserInput"
+              },
+              "example": {
+                "name": "Ada Lovelace",
+                "email": "ada.lovelace@example.com",
+                "role": "developer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "example": {
+                  "id": "4",
+                  "name": "Ada Lovelace",
+                  "email": "ada.lovelace@example.com",
+                  "role": "developer",
+                  "createdAt": "2026-11-17T14:30:00.000Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Input validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                },
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Validation failed",
+                  "details": [
+                    {
+                      "field": "email",
+                      "message": "Email must be a valid email address"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - User with this email already exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Conflict",
+                  "message": "A user with email 'alice.johnson@example.com' already exists"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "description": "Retrieve a single user profile using their unique identifier.",
+        "operationId": "getUserById",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Unique string identifier of the user.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found and returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "example": {
+                  "id": "1",
+                  "name": "Alice Johnson",
+                  "email": "alice.johnson@example.com",
+                  "role": "admin",
+                  "createdAt": "2026-01-10T08:30:00.000Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Not Found",
+                  "message": "User with id '999' not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user by ID",
+        "description": "Remove an existing user from the sandbox database.",
+        "operationId": "deleteUser",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier of the user to delete.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteUserResponse"
+                },
+                "example": {
+                  "message": "User deleted successfully",
+                  "user": {
+                    "id": "2",
+                    "name": "Bob Smith",
+                    "email": "bob.smith@example.com",
+                    "role": "developer",
+                    "createdAt": "2026-02-14T10:15:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Not Found",
+                  "message": "User with id '999' not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user.",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the user.",
+            "example": "Alice Johnson"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Primary email address.",
+            "example": "alice.johnson@example.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "System access role.",
+            "enum": [
+              "admin",
+              "developer",
+              "tester",
+              "user"
+            ],
+            "example": "admin"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO-8601 timestamp when user was created.",
+            "example": "2026-01-10T08:30:00.000Z"
+          }
+        }
+      },
+      "CreateUserInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Full name (at least 2 characters).",
+            "example": "Ada Lovelace"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Valid email address.",
+            "example": "ada.lovelace@example.com"
+          },
+          "role": {
+            "type": "string",
+            "default": "user",
+            "description": "Designated role.",
+            "enum": [
+              "admin",
+              "developer",
+              "tester",
+              "user"
+            ],
+            "example": "developer"
+          }
+        }
+      },
+      "DeleteUserResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "user"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "User deleted successfully"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Not Found"
+          },
+          "message": {
+            "type": "string",
+            "example": "User with id '999' not found"
+          }
+        }
+      },
+      "ValidationErrorDetail": {
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "example": "email"
+          },
+          "message": {
+            "type": "string",
+            "example": "Email must be a valid email address"
+          }
+        }
+      },
+      "ValidationErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "details"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationErrorDetail"
+            }
+          }
+        }
+      }
+    }
+  }
+}

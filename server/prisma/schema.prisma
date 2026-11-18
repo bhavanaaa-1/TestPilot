@@ -1,0 +1,156 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ApiDocChunk {
+  id          String   @id @default(cuid())
+  specTitle   String   @map("spec_title")
+  specVersion String   @map("spec_version")
+  endpointId  String?  @map("endpoint_id")
+  path        String?
+  method      String?
+  chunkType   String   @map("chunk_type")
+  content     String
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([endpointId])
+  @@index([chunkType])
+  @@map("api_doc_chunks")
+}
+
+model TestExecutionRun {
+  id           String            @id @default(cuid())
+  specTitle    String?           @map("spec_title")
+  endpointId   String?           @map("endpoint_id")
+  status       String            @default("COMPLETED")
+  totalTests   Int               @default(0) @map("total_tests")
+  passedCount  Int               @default(0) @map("passed_count")
+  failedCount  Int               @default(0) @map("failed_count")
+  durationMs   Int               @default(0) @map("duration_ms")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  testResults  TestCaseResult[]
+  agentRuns    AgentRun[]
+
+  @@map("test_execution_runs")
+}
+
+model TestCaseResult {
+  id                     String           @id @default(cuid())
+  runId                  String           @map("run_id")
+  testCaseId             String           @map("test_case_id")
+  testName               String           @map("test_name")
+  category               String
+  method                 String
+  path                   String
+  targetUrl              String           @map("target_url")
+  requestHeaders         Json?            @map("request_headers")
+  requestBody            Json?            @map("request_body")
+  expectedStatus         Int              @map("expected_status")
+  actualStatus           Int?             @map("actual_status")
+  statusMatches          Boolean          @default(false) @map("status_matches")
+  expectedConditions     Json?            @map("expected_conditions")
+  conditionEvaluations   Json?            @map("condition_evaluations")
+  actualResponseBody     Json?            @map("actual_response_body")
+  actualResponseHeaders  Json?            @map("actual_response_headers")
+  durationMs             Int              @default(0) @map("duration_ms")
+  status                 String           // PASSED | FAILED | ERROR
+  errorMessage           String?          @map("error_message")
+  diagnosis              Json?
+  createdAt              DateTime         @default(now()) @map("created_at")
+
+  run                    TestExecutionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("test_case_results")
+}
+
+model AgentRun {
+  id                  String             @id @default(cuid())
+  endpointId          String             @map("endpoint_id")
+  objective           String
+  status              String             @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | FAILED
+  specTitle           String?            @map("spec_title")
+  endpointPath        String?            @map("endpoint_path")
+  endpointMethod      String?            @map("endpoint_method")
+  testExecutionRunId  String?            @map("test_execution_run_id")
+  summary             String?
+  evidence            Json?
+  suggestedFixes      Json?              @map("suggested_fixes")
+  totalTokens         Int?               @default(0) @map("total_tokens")
+  estimatedCost       Float?             @default(0.0) @map("estimated_cost")
+  durationMs          Int?               @default(0) @map("duration_ms")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  completedAt         DateTime?          @map("completed_at")
+
+  testExecutionRun    TestExecutionRun?  @relation(fields: [testExecutionRunId], references: [id])
+  traceSteps          AgentTraceStep[]
+
+  @@map("agent_runs")
+}
+
+model AgentTraceStep {
+  id         String    @id @default(cuid())
+  agentRunId String    @map("agent_run_id")
+  stepNumber Int       @map("step_number")
+  stepType   String    @map("step_type") // THINKING | TOOL_CALL | TOOL_RESULT | OBSERVATION | DECISION
+  toolName   String?   @map("tool_name")
+  toolArgs   Json?     @map("tool_args")
+  toolResult Json?     @map("tool_result")
+  stepStatus String    @default("SUCCESS") @map("step_status")
+  notes      String?
+  timestamp  DateTime  @default(now())
+
+  agentRun   AgentRun  @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+
+  @@index([agentRunId])
+  @@map("agent_trace_steps")
+}
+
+model EvaluationRun {
+  id                 String                 @id @default(cuid())
+  datasetId          String                 @map("dataset_id")
+  datasetVersion     String                 @map("dataset_version")
+  datasetName        String                 @map("dataset_name")
+  totalCases         Int                    @default(0) @map("total_cases")
+  passedCases        Int                    @default(0) @map("passed_cases")
+  failedCases        Int                    @default(0) @map("failed_cases")
+  overallScore       Float                  @default(0.0) @map("overall_score")
+  schemaValidityRate Float                  @default(0.0) @map("schema_validity_rate")
+  endpointAccuracy   Float                  @default(0.0) @map("endpoint_accuracy")
+  methodAccuracy     Float                  @default(0.0) @map("method_accuracy")
+  statusAccuracy     Float                  @default(0.0) @map("status_accuracy")
+  categoryCoverage   Float                  @default(0.0) @map("category_coverage")
+  durationMs         Int                    @default(0) @map("duration_ms")
+  status             String                 @default("COMPLETED")
+  createdAt          DateTime               @default(now()) @map("created_at")
+
+  caseResults        EvaluationCaseResult[]
+
+  @@map("evaluation_runs")
+}
+
+model EvaluationCaseResult {
+  id              String        @id @default(cuid())
+  evaluationRunId String        @map("evaluation_run_id")
+  caseId          String        @map("case_id")
+  endpoint        String
+  scenarioType    String        @map("scenario_type")
+  passed          Boolean       @default(false)
+  score           Float         @default(0.0)
+  metrics         Json?
+  generatedTests  Json?         @map("generated_tests")
+  referenceTests  Json?         @map("reference_tests")
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  evaluationRun   EvaluationRun @relation(fields: [evaluationRunId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationRunId])
+  @@map("evaluation_case_results")
+}
